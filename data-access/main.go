@@ -131,3 +131,55 @@ func insertAlbum(album Album) (int, error) {
 
 	return id, qErr
 }
+
+func deleteAlbum(id int) error {
+	conn, err := pgx.Connect(context.Background(), connStr)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+		return err
+	}
+	defer conn.Close(context.Background())
+
+	query := "DELETE FROM album WHERE id = $1"
+	commandTag, err := conn.Exec(context.Background(), query, id)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() != 1 {
+		return fmt.Errorf("No album found with ID %d", id)
+	}
+
+	return nil
+}
+
+func updateAlbum(id int, album Album) (int, error) {
+	conn, err := pgx.Connect(context.Background(), connStr)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+		return 0, err
+	}
+	defer conn.Close(context.Background())
+
+	query := `
+        UPDATE album
+        SET title = @title, artist = @artist, price = @price
+        WHERE id = @id
+    `
+
+	args := pgx.NamedArgs{
+		"title":  album.Title,
+		"artist": album.Artist,
+		"price":  album.Price,
+		"id":     id,
+	}
+
+	var rowId int
+	qErr := conn.QueryRow(context.Background(), query, args).Scan(&rowId)
+	if qErr != nil {
+		log.Fatalf("Query failed insertAlbum): %v", err)
+		return 0, qErr
+	}
+
+	return rowId, qErr
+}
