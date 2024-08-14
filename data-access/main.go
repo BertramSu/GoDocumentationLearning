@@ -25,7 +25,7 @@ type Config struct {
 var cfg = Config{
 	Username:     "admin",
 	Password:     "passwordHere",
-	Address:      "localhost:5432",
+	Address:      "albums-pg-2:5432",
 	DatabaseName: "album_db",
 }
 
